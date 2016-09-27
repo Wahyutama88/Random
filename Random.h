@@ -18,23 +18,23 @@ namespace seed {
                                    == sizeof(typename Engine::result_type));
     };
 
+#if defined(__MINGW32__)
+    template <typename Engine>
+    typename Engine::result_type Generate()
+    {
+        return static_cast<typename Engine::result_type>
+            (std::chrono::high_resolution_clock::now()
+            .time_since_epoch()
+            .count());
+    }
+#else
     template <typename Engine>
     typename std::enable_if<is_64bit<Engine>::value,
         typename Engine::result_type>::type
         Generate()
     {
-#if defined(__MINGW32__)
-        auto rd =
-            [] () {
-            return std::chrono::high_resolution_clock::now()
-                .time_since_epoch()
-                .count();
-        };
-        return rd();
-#else
         std::random_device rd;
         return ((unsigned long long)rd() << 32 | rd());
-#endif
     }
 
     template <typename Engine>
@@ -42,20 +42,10 @@ namespace seed {
         typename Engine::result_type>::type
         Generate()
     {
-#if defined(__MINGW32__)
-        auto rd =
-            [] () {
-            return static_cast<unsigned long>
-                (std::chrono::high_resolution_clock::now()
-                 .time_since_epoch()
-                 .count());
-        };
-        return rd();
-#else
         std::random_device rd;
         return rd();
-#endif
     }
+#endif
 }
 
 template <
